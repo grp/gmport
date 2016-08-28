@@ -11,10 +11,10 @@ build ${entitlements}: sh
         plutil -insert "get-task-allow" -bool "${debug}" "${entitlements}"
    desc = "Generate entitlements"
 
-build sign-library: codesign ${library} | ${entitlements} build
+build sign-library: codesign ${library} | ${entitlements} all
     identity = ${identity}
     entitlements = ${entitlements}
-build sign-bundle: codesign ${bundle} | ${entitlements} build
+build sign-bundle: codesign ${bundle} | ${entitlements} all
     identity = ${identity}
     entitlements = ${entitlements}
 
