@@ -4,7 +4,13 @@ Port Game Maker games to iOS.
 
 ## Explanation
 
-Game Maker games are inherently portable, as the Game Maker engine runs on many platforms. However, many games are only released for a subset of the supported platforms. This ports many Game Maker games to iOS.
+Game Maker games are inherently portable, as the Game Maker engine runs on many platforms. However, many games are only released for a subset of the supported platforms. This ports many Game Maker games to iOS. Games are controlled by a virtual gamepad that maps to digital keyboard input.
+
+## Supported Games
+
+ - [AM2R](http://metroid2remake.blogspot.com) (Another Metroid II Remake)
+ - [Undertale](http://undertale.com)
+ - *Send a pull request for other games that work.*
 
 ## Installation
 
