@@ -20,7 +20,7 @@ Game Maker games are inherently portable, as the Game Maker engine runs on many 
         brew install node
         npm install -g ios-deploy
 
- - An unmodified, decrypted copy of a Game Maker game for iOS. I used [Cally's Caves 3](https://itunes.apple.com/us/app/callys-caves-3/id940192022), which is free, but others should also work.
+ - An unmodified, decrypted copy of a Game Maker game for iOS. I used [Crashlands](https://itunes.apple.com/us/app/crashlands/id808296431), which is free, but others should also work.
  - An iOS Developer program membership, to re-sign the app.
 
 ### Instructions

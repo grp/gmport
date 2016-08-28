@@ -23,6 +23,7 @@ build ${contents}: sh | ${content} ${bundle}
             mv "${contents}/data.win" "${data}" || $
             mv "${contents}/game.droid" "${data}" || $
             mv "${contents}/game.unx" "${data}" || $
+            mv "${contents}/game.ios" "${data}" || $
             mv "${data}" "${data}" $
         )
     desc = Copy contents
