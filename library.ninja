@@ -9,9 +9,11 @@ deployment_target = 7.0
 
 src = src
 build ${builddir}/Controls.o: cc ${src}/Controls.m
+build ${builddir}/input.o: cc ${src}/input.c
 
 build ${library}: link $
-    ${builddir}/Controls.o
+    ${builddir}/Controls.o $
+    ${builddir}/input.o
     type = -dynamiclib
     libs = $
         -framework Foundation $

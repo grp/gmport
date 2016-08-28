@@ -27,6 +27,7 @@ rule cc
         ${cc} $
         -MMD -MT $out -MF $out.d $
         -arch ${arch} $
+        -fobjc-arc $
         -isysroot $$(xcrun --sdk ${sdk} --show-sdk-path) $
         -m${sdk}-version-min=${deployment_target} $
         ${cflags} $

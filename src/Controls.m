@@ -6,39 +6,16 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
-#import "Hook.h"
-#import "iCadeState.h"
-
-
-@interface EAGLView : UIView
-
-- (void)buttonDown:(iCadeState)state;
-- (void)buttonUp:(iCadeState)state;
-
-@end
-
-
-@interface RunnerAppDelegate : NSObject <UIApplicationDelegate>
-
-@property(nonatomic, strong) EAGLView *glView;
-
-@end
+#import "input.h"
 
 
 @interface ControlView : UIView
 
 @end
 
-static EAGLView *GetEAGLView(void)
+static NSSet<NSNumber *> *Buttons(UIView *view, NSSet<UITouch *> *touches)
 {
-    UIApplication *application = [UIApplication sharedApplication];
-    RunnerAppDelegate *delegate = (RunnerAppDelegate *)application.delegate;
-    return delegate.glView;
-}
-
-static iCadeState Buttons(UIView *view, NSSet<UITouch *> *touches)
-{
-    iCadeState buttons = iCadeJoystickNone;
+    NSMutableSet<NSNumber *> *buttons = [NSMutableSet set];
 
     for (UITouch *touch in touches) {
         CGPoint location = [touch locationInView:view];
@@ -49,16 +26,16 @@ static iCadeState Buttons(UIView *view, NSSet<UITouch *> *touches)
             if (CGRectContainsPoint(area, location)) {
                 CGSize region = CGSizeMake(area.size.width / 3, area.size.height / 3);
                 if (location.x < CGRectGetMinX(area) + region.width) {
-                    buttons |= iCadeJoystickLeft;
+                    [buttons addObject:@(input_keycode_left)];
                 }
                 if (location.x > CGRectGetMaxX(area) - region.width) {
-                    buttons |= iCadeJoystickRight;
+                    [buttons addObject:@(input_keycode_right)];
                 }
                 if (location.y < CGRectGetMinY(area) + region.height) {
-                    buttons |= iCadeJoystickUp;
+                    [buttons addObject:@(input_keycode_up)];
                 }
                 if (location.y > CGRectGetMaxY(area) - region.height) {
-                    buttons |= iCadeJoystickDown;
+                    [buttons addObject:@(input_keycode_down)];
                 }
             }
         }
@@ -69,15 +46,15 @@ static iCadeState Buttons(UIView *view, NSSet<UITouch *> *touches)
             if (CGRectContainsPoint(area, location)) {
                 if (location.y < CGRectGetMidY(area)) {
                     if (location.x < CGRectGetMidX(area)) {
-                        buttons |= iCadeButtonA;
+                        [buttons addObject:@(input_keycode_z)];
                     } else {
-                        buttons |= iCadeButtonB;
+                        [buttons addObject:@(input_keycode_x)];
                     }
                 } else {
                     if (location.x < CGRectGetMidX(area)) {
-                        buttons |= iCadeButtonC;
+                        [buttons addObject:@(input_keycode_c)];
                     } else {
-                        buttons |= iCadeButtonD;
+                        [buttons addObject:@(input_keycode_v)];
                     }
                 }
             }
@@ -89,169 +66,93 @@ static iCadeState Buttons(UIView *view, NSSet<UITouch *> *touches)
             if (CGRectContainsPoint(area, location)) {
                 if (location.y < CGRectGetMidY(area)) {
                     if (location.x < CGRectGetMidX(area)) {
-                        buttons |= iCadeButtonE;
+                        [buttons addObject:@(input_keycode_a)];
                     } else {
-                        buttons |= iCadeButtonF;
+                        [buttons addObject:@(input_keycode_s)];
                     }
                 } else {
                     if (location.x < CGRectGetMidX(area)) {
-                        buttons |= iCadeButtonG;
+                        [buttons addObject:@(input_keycode_d)];
                     } else {
-                        buttons |= iCadeButtonH;
+                        [buttons addObject:@(input_keycode_f)];
                     }
                 }
             }
         }
     }
 
-    return buttons;
-}
-
-static NSString *ButtonsDescription(iCadeState state) {
-    NSMutableString *description = [NSMutableString string];
-    [description appendString:@"["];
-
-    if (state & iCadeJoystickUp) {
-        [description appendString:@"^"];
-    } else {
-        [description appendString:@" "];
-    }
-
-    if (state & iCadeJoystickDown) {
-        [description appendString:@"v"];
-    } else {
-        [description appendString:@" "];
-    }
-
-    if (state & iCadeJoystickLeft) {
-        [description appendString:@"<"];
-    } else {
-        [description appendString:@" "];
-    }
-
-    if (state & iCadeJoystickRight) {
-        [description appendString:@">"];
-    } else {
-        [description appendString:@" "];
-    }
-
-    if (state & iCadeButtonA) {
-        [description appendString:@"a"];
-    } else {
-        [description appendString:@" "];
-    }
-
-    if (state & iCadeButtonB) {
-        [description appendString:@"b"];
-    } else {
-        [description appendString:@" "];
-    }
-
-    if (state & iCadeButtonC) {
-        [description appendString:@"c"];
-    } else {
-        [description appendString:@" "];
-    }
-
-    if (state & iCadeButtonD) {
-        [description appendString:@"d"];
-    } else {
-        [description appendString:@" "];
-    }
-
-    if (state & iCadeButtonE) {
-        [description appendString:@"e"];
-    } else {
-        [description appendString:@" "];
-    }
-
-    if (state & iCadeButtonF) {
-        [description appendString:@"f"];
-    } else {
-        [description appendString:@" "];
-    }
-
-    if (state & iCadeButtonG) {
-        [description appendString:@"g"];
-    } else {
-        [description appendString:@" "];
-    }
-
-    if (state & iCadeButtonH) {
-        [description appendString:@"h"];
-    } else {
-        [description appendString:@" "];
-    }
-
-    [description appendString:@"]"];
-    return [description copy];
+    return [buttons copy];
 }
 
 @implementation ControlView {
-    iCadeState _previous;
+    NSMutableSet<NSNumber *> *_previous;
 }
 
 - (instancetype)initWithFrame:(CGRect)frame
 {
     if (self = [super initWithFrame:frame]) {
         self.multipleTouchEnabled = YES;
+        _previous = [NSMutableSet set];
     }
 
     return self;
 }
 
+static void Down(NSSet<NSNumber *> *buttons)
+{
+    for (NSNumber *button in buttons) {
+        input_key_down(button.intValue);
+    }
+}
+
+static void Up(NSSet<NSNumber *> *buttons)
+{
+    for (NSNumber *button in buttons) {
+        input_key_up(button.intValue);
+    }
+}
+
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
 {
-    iCadeState buttons = Buttons(self, touches);
-    EAGLView *view = GetEAGLView();
+    NSSet<NSNumber *> *buttons = Buttons(self, touches);
 
-    NSLog(@"began, down: %@", ButtonsDescription(buttons));
-    [view buttonDown:buttons];
+    Down(buttons);
 
-    _previous |= buttons;
-    NSLog(@"state is now: %@", ButtonsDescription(_previous));
+    [_previous unionSet:buttons];
 }
 
 - (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
 {
-    iCadeState buttons = Buttons(self, touches);
-    EAGLView *view = GetEAGLView();
+    NSSet<NSNumber *> *buttons = Buttons(self, touches);
 
-    iCadeState up = _previous & ~buttons;
-    [view buttonUp:up];
+    NSMutableSet<NSNumber *> *up = [_previous mutableCopy];
+    [up minusSet:buttons];
+    Up(up);
 
-    iCadeState down = buttons & ~_previous;
-    [view buttonDown:down];
+    NSMutableSet<NSNumber *> *down = [buttons mutableCopy];
+    [down minusSet:_previous];
+    Down(down);
 
-    NSLog(@"moved, up: %@, down: %@, seen: %@", ButtonsDescription(up), ButtonsDescription(down), ButtonsDescription(buttons));
-
-    _previous |= down;
-    _previous &= ~up;
-    NSLog(@"state is now: %@", ButtonsDescription(_previous));
+    [_previous unionSet:down];
+    [_previous minusSet:up];
 }
 
 - (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
 {
-    iCadeState buttons = Buttons(self, touches);
-    EAGLView *view = GetEAGLView();
+    NSSet<NSNumber *> *buttons = Buttons(self, touches);
 
-    NSLog(@"ended, up: %@", ButtonsDescription(buttons));
-    [view buttonUp:buttons];
+    Up(buttons);
 
-    _previous &= ~buttons;
-    NSLog(@"state is now: %@", ButtonsDescription(_previous));
+    [_previous minusSet:buttons];
 }
 
 - (void)touchesCancelled:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
 {
-    iCadeState buttons = Buttons(self, touches);
-    EAGLView *view = GetEAGLView();
+    NSSet<NSNumber *> *buttons = Buttons(self, touches);
 
-    NSLog(@"cancelled, up: %@", ButtonsDescription(buttons));
-    [view buttonUp:buttons];
+    Up(buttons);
 
-    _previous &= ~buttons;
-    NSLog(@"state is now: %@", ButtonsDescription(_previous));
+    [_previous minusSet:buttons];
 }
 
 @end
@@ -282,6 +183,8 @@ static NSString *ButtonsDescription(iCadeState state) {
 @end
 
 
+static UIWindow *window = nil;
+
 __attribute__((constructor))
 static void ControlsInitialize(void)
 {
@@ -292,7 +195,8 @@ static void ControlsInitialize(void)
     [notificationCenter addObserverForName:UIApplicationDidFinishLaunchingNotification object:nil queue:mainQueue usingBlock:^(NSNotification *notification) {
         dispatch_async(dispatch_get_main_queue(), ^{
             UIScreen *mainScreen = [UIScreen mainScreen];
-            UIWindow *window = [[UIWindow alloc] initWithFrame:mainScreen.bounds];
+
+            window = [[UIWindow alloc] initWithFrame:mainScreen.bounds];
             window.windowLevel = 2000.0;
 
             ControlViewController *viewController = [[ControlViewController alloc] init];

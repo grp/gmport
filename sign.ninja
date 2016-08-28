@@ -9,7 +9,7 @@ build ${entitlements}: sh
         echo "{}" | plutil -convert xml1 - -o "${entitlements}" && $
         plutil -insert "application-identifier" -string "${appid}.${identifier}" "${entitlements}" && $
         plutil -insert "get-task-allow" -bool "${debug}" "${entitlements}"
-   desc = "Generate entitlements"
+   desc = Generate entitlements
 
 build sign-library: codesign ${library} | ${entitlements} all
     identity = ${identity}
