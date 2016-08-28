@@ -1,0 +1,28 @@
+#
+# Copyright (c) 2016, Grant Paul
+# All rights reserved.
+#
+
+# Change bundle name and display name to match the target.
+cmd_name = $
+    plutil -replace "CFBundleName" -string "${name}" "${plist}" && $
+    plutil -replace "CFBundleDisplayName" -string "${name}" "${plist}"
+# Change the bundle identifier to match the target.
+cmd_identifier = plutil -replace "CFBundleIdentifier" -string "${identifier}" "${plist}"
+# Change bundle version to match the target.
+cmd_version = $
+    plutil -replace "CFBundleVersion" -string "${version}" "${plist}" && $
+    plutil -replace "CFBundleShortVersionString" -string "${version}" "${plist}"
+# Remove advertising, IAP, etc.
+cmd_yoyo = $
+    (plutil -remove "YYAdvertisingKey" "${plist}" || true) && $
+    (plutil -remove "YYAdvertisingType" "${plist}" || true) && $
+    (plutil -remove "YYIAPSandbox" "${plist}" || true) && $
+    (plutil -remove "YYHostPort" "${plist}" || true) && $
+    (plutil -remove "YYHostIP" "${plist}" || true)
+
+build ${plist}: sh | ${bundle}
+    cmd = ${cmd_name} && ${cmd_identifier} && ${cmd_version} && ${cmd_yoyo}
+    desc = Modify Info.plist
+
+build plist: phony ${plist}

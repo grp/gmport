@@ -1,0 +1,20 @@
+#
+# Copyright (c) 2016, Grant Paul
+# All rights reserved.
+#
+
+build ${bundle}: copy ${source}
+
+contents = ${bundle}/games
+build ${contents}: copy ${content} | ${bundle}
+    exclude = *.{dll,exe}
+
+data = ${contents}/game.ios
+build ${data}: sh | ${contents}
+    cmd = $
+        mv "${contents}/data.win" "${data}" || $
+        mv "${contents}/game.droid" "${data}" || $
+        mv "${data}" "${data}"
+    desc = Rename data
+
+build bundle: phony ${bundle} ${contents} ${data}

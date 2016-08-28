@@ -1,0 +1,21 @@
+#
+# Copyright (c) 2016, Grant Paul
+# All rights reserved.
+#
+
+sdk = iphoneos
+arch = arm64
+deployment_target = 7.0
+
+src = src
+build ${builddir}/Controls.o: cc ${src}/Controls.m
+
+build ${library}: link $
+    ${builddir}/Controls.o
+    type = -dynamiclib
+    libs = $
+        -framework Foundation $
+        -framework CoreGraphics $
+        -framework UIKit
+
+build library: phony ${library}

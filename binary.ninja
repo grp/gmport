@@ -1,0 +1,22 @@
+#
+# Copyright (c) 2016, Grant Paul
+# All rights reserved.
+#
+
+original = ${bundle}/$$(/usr/libexec/PlistBuddy -c "Print :CFBundleExecutable" "${plist}")
+dylib = $$(echo "${library}" | sed "s#${bundle}#@executable_path#")
+
+# Move the binary into place if not already.
+cmd_move = $
+    if [ -f "${original}" ]; then $
+        mv "${original}" "${binary}"; $
+        plutil -replace "CFBundleExecutable" -string "${name}" "${plist}"; $
+    fi
+# Add the load command to load the library.
+cmd_insert = python insert_dylib.py --input "${binary}" --output "${binary}" --dylib "${dylib}"
+
+build ${binary}: sh | ${bundle} insert_dylib.py macho.py
+    cmd = ${cmd_move} && ${cmd_insert}
+    desc = Add library load command
+
+build binary: phony ${binary}

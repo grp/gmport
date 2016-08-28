@@ -1,0 +1,21 @@
+#
+# Copyright (c) 2016, Grant Paul
+# All rights reserved.
+#
+
+entitlements = ${builddir}/Entitlements.xml
+build ${entitlements}: sh
+    cmd = $
+        echo "{}" | plutil -convert xml1 - -o "${entitlements}" && $
+        plutil -insert "application-identifier" -string "${appid}.${identifier}" "${entitlements}" && $
+        plutil -insert "get-task-allow" -bool "${debug}" "${entitlements}"
+   desc = "Generate entitlements"
+
+build sign-library: codesign ${library} | ${entitlements} build
+    identity = ${identity}
+    entitlements = ${entitlements}
+build sign-bundle: codesign ${bundle} | ${entitlements} build
+    identity = ${identity}
+    entitlements = ${entitlements}
+
+build sign: phony sign-library sign-bundle

@@ -1,0 +1,44 @@
+#
+# Copyright (c) 2016, Grant Paul
+# All rights reserved.
+#
+
+include rules.ninja
+
+# Input options.
+include input.ninja
+
+# Build directory.
+builddir = build
+build clean: rm ${builddir}
+
+# Paths.
+bundle = ${builddir}/${name}.app
+library = ${bundle}/Library.dylib
+plist = ${bundle}/Info.plist
+binary = ${bundle}/${name}
+
+# Build app bundle.
+subninja bundle.ninja
+
+# Build injected library.
+subninja library.ninja
+
+# Build Info.plist.
+subninja plist.ninja
+
+# Modify binary.
+subninja binary.ninja
+
+# Default build.
+build all: phony bundle plist library binary
+default all
+
+# Sign.
+subninja sign.ninja
+
+# Install.
+build install: deploy ${bundle} | sign
+    flags = 
+build debug: deploy ${bundle} | sign
+    flags = -d
