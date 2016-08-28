@@ -30,8 +30,11 @@ subninja plist.ninja
 # Modify binary.
 subninja binary.ninja
 
+# Replace icon.
+subninja icon.ninja
+
 # Default build.
-build all: phony bundle plist library binary
+build all: phony bundle plist icon library binary
 default all
 
 # Sign.

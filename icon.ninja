@@ -1,0 +1,23 @@
+#
+# Copyright (c) 2016, Grant Paul
+# All rights reserved.
+#
+
+original = /usr/libexec/PlistBuddy -c "Print :CFBundleIcons:CFBundlePrimaryIcon:CFBundleIconFiles" build/AM2R.app/Info.plist | grep "    " | sed "s#    #${bundle}/#"
+icon_name = AppIcon.png
+icon_path = ${bundle}/${icon_name}
+
+# Delete original icons.
+cmd_remove = ${original} | xargs rm -rf
+
+# Copy in new icon.
+cmd_copy = cp "${icon}" "${icon_path}"
+
+# Insert to Info.plist.
+cmd_insert = plutil -replace "CFBundleIcons" -xml "<dict><key>CFBundlePrimaryIcon</key><dict><key>CFBundleIconFiles</key><array><string>${icon_name}</string></array></dict></dict>" "${plist}"
+
+build ${icon_path}: sh | ${bundle} ${icon}
+    cmd = ${cmd_remove} && ${cmd_copy} && ${cmd_insert}
+    desc = Replace app icon
+
+build icon: phony ${icon_path}
