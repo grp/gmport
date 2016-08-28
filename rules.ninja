@@ -10,7 +10,7 @@ rule sh
     description = ${desc}
 
 rule copy
-    command = rm -rf $out && cp -R $in $out && if [ ! -z "${exclude}" ]; then rm -rf $out/${exclude}; fi
+    command = rm -rf $out && cp -R $in $out
     description = Copy $in to $out
 
 rule rm

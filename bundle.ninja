@@ -6,16 +6,23 @@
 build ${bundle}: copy ${source}
 
 contents = ${bundle}/games
-build ${contents}: copy ${content} | ${bundle}
-    exclude = *.{dll,exe}
-
 data = ${contents}/game.ios
-build ${data}: sh | ${contents}
-    cmd = $
-        mv "${contents}/data.win" "${data}" || $
-        mv "${contents}/game.droid" "${data}" || $
-        mv "${contents}/game.unx" "${data}" || $
-        mv "${data}" "${data}"
-    desc = Rename data
 
-build bundle: phony ${bundle} ${contents} ${data}
+build ${contents}: sh | ${content} ${bundle}
+    cmd = $
+        rm -rf "${contents}" && $
+        cp -R "${content}" "${contents}" && $
+        rm -rf "${contents}"/*.dll && $
+        rm -rf "${contents}"/*.exe && $
+        for ogg in "${contents}"/*.ogg; do $
+            mv "$$ogg" "$$(echo $$ogg | tr [:upper:] [:lower:])"; $
+        done && $
+        ( $
+            mv "${contents}/data.win" "${data}" || $
+            mv "${contents}/game.droid" "${data}" || $
+            mv "${contents}/game.unx" "${data}" || $
+            mv "${data}" "${data}" $
+        )
+    desc = Copy contents
+
+build bundle: phony ${bundle} ${contents}
