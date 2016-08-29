@@ -6,25 +6,29 @@
 #import "ControlView.h"
 
 
-static UIColor *BackgroundColor(void)
+@implementation ControlView
+
++ (UIColor *)backgroundColor
 {
     return [UIColor colorWithWhite:1.0 alpha:0.1];
 }
 
-static CGFloat BorderWidth(void)
++ (CGFloat)borderWidth
 {
     return 2.0;
 }
 
-static UIColor *BorderColor(void)
++ (UIColor *)borderColor
 {
     return [UIColor colorWithWhite:0.5 alpha:0.3];
 }
 
-static UIColor *TextColor(void)
++ (UIColor *)textColor
 {
     return [UIColor colorWithWhite:0.8 alpha:0.4];
 }
+
+@end
 
 
 @implementation ButtonView {
@@ -35,14 +39,14 @@ static UIColor *TextColor(void)
 {
     if (self = [super initWithFrame:frame]) {
         self.userInteractionEnabled = NO;
-        self.backgroundColor = BackgroundColor();
+        self.backgroundColor = [self.class backgroundColor];
 
         self.clipsToBounds = YES;
-        self.layer.borderWidth = BorderWidth();
-        self.layer.borderColor = [BorderColor() CGColor];
+        self.layer.borderWidth = [self.class borderWidth];
+        self.layer.borderColor = [[self.class borderColor] CGColor];
 
         _label = [[UILabel alloc] init];
-        _label.textColor = TextColor();
+        _label.textColor = [self.class textColor];
         _label.textAlignment = NSTextAlignmentCenter;
         [self addSubview:_label];
     }
@@ -83,15 +87,59 @@ static UIColor *TextColor(void)
     return self;
 }
 
+static CGSize SpokeSize(CGRect bounds)
+{
+    CGSize center = CGSizeMake(bounds.size.width / 3, bounds.size.height / 3);
+    return CGSizeMake((bounds.size.width - center.width) / 2, (bounds.size.height - center.height) / 2);
+}
+
+- (BOOL)pointInsideUp:(CGPoint)point withEvent:(UIEvent *)event
+{
+    if (![self pointInside:point withEvent:event]) {
+        return NO;
+    }
+
+    CGSize spoke = SpokeSize(self.bounds);
+    return (point.y < CGRectGetMinY(self.bounds) + spoke.height);
+}
+
+- (BOOL)pointInsideDown:(CGPoint)point withEvent:(UIEvent *)event
+{
+    if (![self pointInside:point withEvent:event]) {
+        return NO;
+    }
+
+    CGSize spoke = SpokeSize(self.bounds);
+    return (point.y > CGRectGetMaxY(self.bounds) - spoke.height);
+}
+
+- (BOOL)pointInsideLeft:(CGPoint)point withEvent:(UIEvent *)event
+{
+    if (![self pointInside:point withEvent:event]) {
+        return NO;
+    }
+
+    CGSize spoke = SpokeSize(self.bounds);
+    return (point.x < CGRectGetMinX(self.bounds) + spoke.width);
+}
+
+- (BOOL)pointInsideRight:(CGPoint)point withEvent:(UIEvent *)event
+{
+    if (![self pointInside:point withEvent:event]) {
+        return NO;
+    }
+
+    CGSize spoke = SpokeSize(self.bounds);
+    return (point.x > CGRectGetMaxX(self.bounds) - spoke.width);
+}
+
 - (void)drawRect:(CGRect)rect
 {
     [super drawRect:rect];
 
     CGRect bounds = self.bounds;
-
+    CGSize spoke = SpokeSize(self.bounds);
     CGVector radii = CGVectorMake(bounds.size.width / 8, bounds.size.height / 8);
-    CGSize center = CGSizeMake(bounds.size.width / 3, bounds.size.height / 3);
-    CGSize spoke = CGSizeMake((bounds.size.width - center.width) / 2, (bounds.size.height - center.height) / 2);
 
     UIBezierPath *path = [UIBezierPath bezierPath];
 
@@ -152,13 +200,13 @@ static UIColor *TextColor(void)
     [path closePath];
 
     /* Fill inside of path. */
-    [BackgroundColor() setFill];
+    [[self.class backgroundColor] setFill];
     [path fill];
 
     /* Clip to draw stroke outside. */
     [path.bezierPathByReversingPath addClip];
-    path.lineWidth = BorderWidth() * 2; /* Half is clipped. */
-    [BorderColor() setStroke];
+    path.lineWidth = [self.class borderWidth] * 2; /* Half is clipped. */
+    [[self.class borderColor] setStroke];
     [path stroke];
 }
 
