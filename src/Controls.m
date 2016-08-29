@@ -22,7 +22,7 @@
 @implementation ControlViewController {
     NSSet<ButtonView<Button *> *> *_buttonViews;
     NSSet<PadView<Pad *> *> *_padViews;
-    NSMutableSet<NSNumber *> *_down;
+    NSMapTable<UITouch *, NSSet<NSNumber *> *> *_down;
 }
 
 - (instancetype)initWithButtons:(NSSet<Button *> *)buttons pads:(NSSet<Pad *> *)pads
@@ -30,7 +30,10 @@
     if (self = [super init]) {
         _buttons = [buttons copy];
         _pads = [pads copy];
-        _down = [NSMutableSet set];
+
+        NSPointerFunctionsOptions keyOptions = (NSPointerFunctionsOpaqueMemory | NSPointerFunctionsOpaquePersonality);
+        NSPointerFunctionsOptions valueOptions = (NSPointerFunctionsStrongMemory | NSPointerFunctionsObjectPointerPersonality);
+        _down = [NSMapTable mapTableWithKeyOptions:keyOptions valueOptions:valueOptions];
     }
 
     return self;
@@ -39,7 +42,6 @@
 - (void)loadView
 {
     [super loadView];
-
     self.view.multipleTouchEnabled = YES;
 
     NSMutableSet<PadView<Pad *> *> *padViews = [NSMutableSet set];
@@ -87,95 +89,107 @@
     }
 }
 
-static void Down(NSSet<NSNumber *> *keycodes)
-{
-    for (NSNumber *keycode in keycodes) {
-        input_key_down(keycode.intValue);
-    }
-}
-
-static void Up(NSSet<NSNumber *> *keycodes)
-{
-    for (NSNumber *keycode in keycodes) {
-        input_key_up(keycode.intValue);
-    }
-}
-
-- (NSSet<NSNumber *> *)keycodesForTouches:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
+- (NSSet<NSNumber *> *)keycodesForTouch:(UITouch *)touch withEvent:(UIEvent *)event
 {
     NSMutableSet<NSNumber *> *keycodes = [NSMutableSet set];
 
-    for (UITouch *touch in touches) {
-        for (ButtonView<Button *> *buttonView in _buttonViews) {
-            CGPoint location = [touch locationInView:buttonView];
-            if ([buttonView pointInside:location withEvent:event]) {
-                [keycodes addObject:@(buttonView.value.keycode)];
-            }
+    /* Pressed buttons. */
+    for (ButtonView<Button *> *buttonView in _buttonViews) {
+        CGPoint location = [touch locationInView:buttonView];
+        if ([buttonView pointInside:location withEvent:event]) {
+            [keycodes addObject:@(buttonView.value.keycode)];
         }
+    }
 
-        for (PadView<Pad *> *padView in _padViews) {
-            CGPoint location = [touch locationInView:padView];
-            if ([padView pointInsideUp:location withEvent:event]) {
-                [keycodes addObject:@(padView.value.upKeycode)];
-            }
-            if ([padView pointInsideLeft:location withEvent:event]) {
-                [keycodes addObject:@(padView.value.leftKeycode)];
-            }
-            if ([padView pointInsideDown:location withEvent:event]) {
-                [keycodes addObject:@(padView.value.downKeycode)];
-            }
-            if ([padView pointInsideRight:location withEvent:event]) {
-                [keycodes addObject:@(padView.value.rightKeycode)];
-            }
+    /* Pressed directions, including diagonals. */
+    for (PadView<Pad *> *padView in _padViews) {
+        CGPoint location = [touch locationInView:padView];
+        if ([padView pointInsideUp:location withEvent:event]) {
+            [keycodes addObject:@(padView.value.upKeycode)];
+        }
+        if ([padView pointInsideLeft:location withEvent:event]) {
+            [keycodes addObject:@(padView.value.leftKeycode)];
+        }
+        if ([padView pointInsideDown:location withEvent:event]) {
+            [keycodes addObject:@(padView.value.downKeycode)];
+        }
+        if ([padView pointInsideRight:location withEvent:event]) {
+            [keycodes addObject:@(padView.value.rightKeycode)];
         }
     }
 
     return keycodes;
 }
 
+- (void)handleTouches:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event mutations:(void (^)(UITouch *, UIEvent *))mutations
+{
+    /* All keycodes down before mutation. */
+    NSMutableSet<NSNumber *> *before = [NSMutableSet set];
+    for (UITouch *touch in _down) {
+        NSSet<NSNumber *> *down = [_down objectForKey:touch];
+        [before unionSet:down];
+    }
+
+    /* Apply mutations. */
+    for (UITouch *touch in touches) {
+        mutations(touch, event);
+    }
+
+    /* All keycodes down after mutation. */
+    NSMutableSet<NSNumber *> *after = [NSMutableSet set];
+    for (UITouch *touch in _down) {
+        NSSet<NSNumber *> *down = [_down objectForKey:touch];
+        [after unionSet:down];
+    }
+
+    /* Determine released keycodes. */
+    NSMutableSet<NSNumber *> *up = [before mutableCopy];
+    [up minusSet:after];
+    for (NSNumber *keycode in up) {
+        input_key_up(keycode.intValue);
+    }
+
+    /* Determine pressed keycodes. */
+    NSMutableSet<NSNumber *> *down = [after mutableCopy];
+    [down minusSet:before];
+    for (NSNumber *keycode in down) {
+        input_key_down(keycode.intValue);
+    }
+}
+
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
 {
-    NSSet<NSNumber *> *keycodes = [self keycodesForTouches:touches withEvent:event];
-
-    Down(keycodes);
-
-    [_down unionSet:keycodes];
+    [self handleTouches:touches withEvent:event mutations:^(UITouch *touch, UIEvent *event) {
+        /* Add new touch with appropriate keycodes. */
+        NSSet<NSNumber *> *keycodes = [self keycodesForTouch:touch withEvent:event];
+        [_down setObject:keycodes forKey:touch];
+    }];
 }
 
 - (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
 {
-    NSSet<NSNumber *> *keycodes = [self keycodesForTouches:touches withEvent:event];
-
-    NSMutableSet<NSNumber *> *up = [_down mutableCopy];
-    [up minusSet:keycodes];
-    Up(up);
-
-    NSMutableSet<NSNumber *> *down = [keycodes mutableCopy];
-    [down minusSet:_down];
-    Down(down);
-
-    [_down unionSet:down];
-    [_down minusSet:up];
+    [self handleTouches:touches withEvent:event mutations:^(UITouch *touch, UIEvent *event) {
+        /* Update each changed touch for new keycodes. */
+        NSSet<NSNumber *> *keycodes = [self keycodesForTouch:touch withEvent:event];
+        [_down setObject:keycodes forKey:touch];
+    }];
 }
 
 - (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
 {
-    NSSet<NSNumber *> *keycodes = [self keycodesForTouches:touches withEvent:event];
-
-    Up(keycodes);
-
-    [_down minusSet:keycodes];
+    [self handleTouches:touches withEvent:event mutations:^(UITouch *touch, UIEvent *event) {
+        /* Remove touch. */
+        [_down removeObjectForKey:touch];
+    }];
 }
 
 - (void)touchesCancelled:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
 {
-    NSSet<NSNumber *> *keycodes = [self keycodesForTouches:touches withEvent:event];
-
-    Up(keycodes);
-
-    [_down minusSet:keycodes];
+    [self handleTouches:touches withEvent:event mutations:^(UITouch *touch, UIEvent *event) {
+        /* Remove touch. */
+        [_down removeObjectForKey:touch];
+    }];
 }
-
 
 - (BOOL)shouldAutorotate
 {
@@ -225,7 +239,7 @@ static void ControlsInitialize(void)
             [buttons addObjectsFromArray:control];
 
             CGSize padSize = CGSizeMake(180, 180);
-            CGPoint padAnchor = CGPointMake(0.13, 0.70);
+            CGPoint padAnchor = CGPointMake(0.15, 0.70);
             Pad *pad = [[Pad alloc] initWithUpKeycode:input_keycode_up leftKeycode:input_keycode_left downKeycode:input_keycode_down rightKeycode:input_keycode_right center:CGVectorMake(0, 0) anchor:padAnchor size:padSize];
             NSSet<Pad *> *pads = [NSSet setWithObject:pad];
 
