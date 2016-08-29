@@ -6,169 +6,148 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
+#import "Control.h"
+#import "ControlView.h"
 #import "input.h"
 
 
-@interface ControlView : UIView
+@interface ControlViewController : UIViewController
+
+- (instancetype)initWithButtons:(NSSet<Button *> *)buttons;
+@property(nonatomic, copy, readonly) NSSet<Button *> *buttons;
 
 @end
 
-static NSSet<NSNumber *> *Buttons(UIView *view, NSSet<UITouch *> *touches)
-{
-    NSMutableSet<NSNumber *> *buttons = [NSMutableSet set];
-
-    for (UITouch *touch in touches) {
-        CGPoint location = [touch locationInView:view];
-
-        // joystick bottom left corner
-        {
-            CGRect area = CGRectMake(0, view.bounds.size.height / 2, view.bounds.size.width / 2, view.bounds.size.height / 2);
-            if (CGRectContainsPoint(area, location)) {
-                CGSize region = CGSizeMake(area.size.width / 3, area.size.height / 3);
-                if (location.x < CGRectGetMinX(area) + region.width) {
-                    [buttons addObject:@(input_keycode_left)];
-                }
-                if (location.x > CGRectGetMaxX(area) - region.width) {
-                    [buttons addObject:@(input_keycode_right)];
-                }
-                if (location.y < CGRectGetMinY(area) + region.height) {
-                    [buttons addObject:@(input_keycode_up)];
-                }
-                if (location.y > CGRectGetMaxY(area) - region.height) {
-                    [buttons addObject:@(input_keycode_down)];
-                }
-            }
-        }
-
-        // buttons top right corner
-        {
-            CGRect area = CGRectMake(view.bounds.size.width / 2, 0, view.bounds.size.width / 2, view.bounds.size.height / 2);
-            if (CGRectContainsPoint(area, location)) {
-                if (location.y < CGRectGetMidY(area)) {
-                    if (location.x < CGRectGetMidX(area)) {
-                        [buttons addObject:@(input_keycode_z)];
-                    } else {
-                        [buttons addObject:@(input_keycode_x)];
-                    }
-                } else {
-                    if (location.x < CGRectGetMidX(area)) {
-                        [buttons addObject:@(input_keycode_c)];
-                    } else {
-                        [buttons addObject:@(input_keycode_v)];
-                    }
-                }
-            }
-        }
-
-        // buttons bottom right corner
-        {
-            CGRect area = CGRectMake(view.bounds.size.width / 2, view.bounds.size.height / 2, view.bounds.size.width / 2, view.bounds.size.height / 2);
-            if (CGRectContainsPoint(area, location)) {
-                if (location.y < CGRectGetMidY(area)) {
-                    if (location.x < CGRectGetMidX(area)) {
-                        [buttons addObject:@(input_keycode_a)];
-                    } else {
-                        [buttons addObject:@(input_keycode_s)];
-                    }
-                } else {
-                    if (location.x < CGRectGetMidX(area)) {
-                        [buttons addObject:@(input_keycode_d)];
-                    } else {
-                        [buttons addObject:@(input_keycode_f)];
-                    }
-                }
-            }
-        }
-    }
-
-    return [buttons copy];
+@implementation ControlViewController {
+    NSMapTable<ButtonView *, Button *> *_buttonViews;
+    PadView *_padView;
+    NSMutableSet<Button *> *_down;
 }
 
-@implementation ControlView {
-    NSMutableSet<NSNumber *> *_previous;
-}
-
-- (instancetype)initWithFrame:(CGRect)frame
+- (instancetype)initWithButtons:(NSSet<Button *> *)buttons
 {
-    if (self = [super initWithFrame:frame]) {
-        self.multipleTouchEnabled = YES;
-        _previous = [NSMutableSet set];
+    if (self = [super init]) {
+        _buttons = [buttons copy];
+        _down = [NSMutableSet set];
     }
 
     return self;
 }
 
-static void Down(NSSet<NSNumber *> *buttons)
+- (void)loadView
 {
-    for (NSNumber *button in buttons) {
-        input_key_down(button.intValue);
+    [super loadView];
+
+    self.view.multipleTouchEnabled = YES;
+
+    _padView = [[PadView alloc] init];
+    [self.view addSubview:_padView];
+
+    NSMapTable<ButtonView *, Button *> *buttonViews = [NSMapTable strongToStrongObjectsMapTable];
+    for (Button *button in _buttons) {
+        ButtonView *buttonView = [[ButtonView alloc] init];
+        buttonView.title = button.name;
+        [self.view addSubview:buttonView];
+        [buttonViews setObject:button forKey:buttonView];
+    }
+    _buttonViews = buttonViews;
+}
+
+- (void)viewWillLayoutSubviews
+{
+    [super viewWillLayoutSubviews];
+
+    _padView.bounds = CGRectMake(0, 0, 180, 180);
+    _padView.center = CGPointMake(120, 300);
+
+    CGRect bounds = self.view.bounds;
+    for (ButtonView *buttonView in _buttonViews) {
+        Button *button = [_buttonViews objectForKey:buttonView];
+
+        CGPoint anchor = CGPointMake(button.anchor.x * bounds.size.width, button.anchor.y * bounds.size.height);
+        CGPoint center = CGPointMake(anchor.x + button.center.dx, anchor.y + button.center.dy);
+        CGRect bounds = CGRectMake(0, 0, button.size.width, button.size.height);
+
+        buttonView.bounds = bounds;
+        buttonView.center = center;
     }
 }
 
-static void Up(NSSet<NSNumber *> *buttons)
+static void Down(NSSet<Button *> *buttons)
 {
-    for (NSNumber *button in buttons) {
-        input_key_up(button.intValue);
+    for (Button *button in buttons) {
+        input_key_down(button.keycode);
     }
+}
+
+static void Up(NSSet<Button *> *buttons)
+{
+    for (Button *button in buttons) {
+        input_key_up(button.keycode);
+    }
+}
+
+- (NSSet<Button *> *)buttonsForTouches:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
+{
+    NSMutableSet<Button *> *buttons = [NSMutableSet set];
+
+    for (UITouch *touch in touches) {
+        for (ButtonView *buttonView in _buttonViews) {
+            CGPoint location = [touch locationInView:buttonView];
+            if ([buttonView pointInside:location withEvent:event]) {
+                Button *button = [_buttonViews objectForKey:buttonView];
+                [buttons addObject:button];
+                break;
+            }
+        }
+    }
+
+    return buttons;
 }
 
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
 {
-    NSSet<NSNumber *> *buttons = Buttons(self, touches);
+    NSSet<Button *> *buttons = [self buttonsForTouches:touches withEvent:event];
 
     Down(buttons);
 
-    [_previous unionSet:buttons];
+    [_down unionSet:buttons];
 }
 
 - (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
 {
-    NSSet<NSNumber *> *buttons = Buttons(self, touches);
+    NSSet<Button *> *buttons = [self buttonsForTouches:touches withEvent:event];
 
-    NSMutableSet<NSNumber *> *up = [_previous mutableCopy];
+    NSMutableSet<Button *> *up = [_down mutableCopy];
     [up minusSet:buttons];
     Up(up);
 
-    NSMutableSet<NSNumber *> *down = [buttons mutableCopy];
-    [down minusSet:_previous];
+    NSMutableSet<Button *> *down = [buttons mutableCopy];
+    [down minusSet:_down];
     Down(down);
 
-    [_previous unionSet:down];
-    [_previous minusSet:up];
+    [_down unionSet:down];
+    [_down minusSet:up];
 }
 
 - (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
 {
-    NSSet<NSNumber *> *buttons = Buttons(self, touches);
+    NSSet<Button *> *buttons = [self buttonsForTouches:touches withEvent:event];
 
     Up(buttons);
 
-    [_previous minusSet:buttons];
+    [_down minusSet:buttons];
 }
 
 - (void)touchesCancelled:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
 {
-    NSSet<NSNumber *> *buttons = Buttons(self, touches);
+    NSSet<Button *> *buttons = [self buttonsForTouches:touches withEvent:event];
 
     Up(buttons);
 
-    [_previous minusSet:buttons];
+    [_down minusSet:buttons];
 }
 
-@end
-
-
-@interface ControlViewController : UIViewController
-
-@end
-
-@implementation ControlViewController
-
-- (void)loadView
-{
-    ControlView *view = [[ControlView alloc] init];
-    self.view = view;
-}
 
 - (BOOL)shouldAutorotate
 {
@@ -188,8 +167,6 @@ static UIWindow *window = nil;
 __attribute__((constructor))
 static void ControlsInitialize(void)
 {
-    NSLog(@"booted!");
-
     NSNotificationCenter *notificationCenter = [NSNotificationCenter defaultCenter];
     NSOperationQueue *mainQueue = [NSOperationQueue mainQueue];
     [notificationCenter addObserverForName:UIApplicationDidFinishLaunchingNotification object:nil queue:mainQueue usingBlock:^(NSNotification *notification) {
@@ -199,11 +176,30 @@ static void ControlsInitialize(void)
             window = [[UIWindow alloc] initWithFrame:mainScreen.bounds];
             window.windowLevel = 2000.0;
 
-            ControlViewController *viewController = [[ControlViewController alloc] init];
+            CGSize actionSize = CGSizeMake(65, 65);
+            CGPoint actionAnchor = CGPointMake(0.83, 0.7);
+            NSArray<Button *> *action = @[
+                [[Button alloc] initWithName:@"Z" keycode:input_keycode_z center:CGVectorMake(65, 0) anchor:actionAnchor size:actionSize],
+                [[Button alloc] initWithName:@"X" keycode:input_keycode_x center:CGVectorMake(0, 55) anchor:actionAnchor size:actionSize],
+                [[Button alloc] initWithName:@"A" keycode:input_keycode_a center:CGVectorMake(-65, 0) anchor:actionAnchor size:actionSize],
+                [[Button alloc] initWithName:@"C" keycode:input_keycode_c center:CGVectorMake(0, -55) anchor:actionAnchor size:actionSize],
+            ];
+
+            CGSize controlSize = CGSizeMake(75, 25);
+            CGPoint controlAnchor = CGPointMake(0.5, 0.92);
+            NSArray<Button *> *control = @[
+                [[Button alloc] initWithName:@"ENTER" keycode:input_keycode_enter center:CGVectorMake(-45, 0) anchor:controlAnchor size:controlSize],
+                [[Button alloc] initWithName:@"SHIFT" keycode:input_keycode_shift center:CGVectorMake(45, 0) anchor:controlAnchor size:controlSize],
+            ];
+
+            NSMutableSet<Button *> *buttons = [NSMutableSet set];
+            [buttons addObjectsFromArray:action];
+            [buttons addObjectsFromArray:control];
+
+            ControlViewController *viewController = [[ControlViewController alloc] initWithButtons:buttons];
             window.rootViewController = viewController;
 
             [window makeKeyAndVisible];
-            NSLog(@"added overlay %@ %@", window, viewController);
         });
     }];
 }

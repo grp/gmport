@@ -9,15 +9,20 @@ deployment_target = 7.0
 
 src = src
 build ${builddir}/Controls.o: cc ${src}/Controls.m
+build ${builddir}/Control.o: cc ${src}/Control.m
+build ${builddir}/ControlView.o: cc ${src}/ControlView.m
 build ${builddir}/input.o: cc ${src}/input.c
 
 build ${library}: link $
     ${builddir}/Controls.o $
+    ${builddir}/Control.o $
+    ${builddir}/ControlView.o $
     ${builddir}/input.o
     type = -dynamiclib
     libs = $
         -framework Foundation $
         -framework CoreGraphics $
+        -framework QuartzCore $
         -framework UIKit
 
 build library: phony ${library}
