@@ -5,6 +5,9 @@
 
 #import "Control.h"
 
+/* Erased generic parameter. */
+typedef id ValueType;
+
 
 @implementation Control
 
@@ -24,11 +27,11 @@
 
 @implementation Button
 
-- (instancetype)initWithName:(NSString *)name keycode:(enum input_keycode)keycode center:(CGVector)center anchor:(CGPoint)anchor size:(CGSize)size
+- (instancetype)initWithName:(NSString *)name value:(ValueType)value center:(CGVector)center anchor:(CGPoint)anchor size:(CGSize)size
 {
     if (self = [super initWithCenter:center anchor:anchor size:size]) {
         _name = [name copy];
-        _keycode = keycode;
+        _value = value;
     }
 
     return self;
@@ -39,13 +42,13 @@
 
 @implementation Pad
 
-- (instancetype)initWithUpKeycode:(enum input_keycode)up leftKeycode:(enum input_keycode)left downKeycode:(enum input_keycode)down rightKeycode:(enum input_keycode)right center:(CGVector)center anchor:(CGPoint)anchor size:(CGSize)size
+- (instancetype)initWithUpValue:(ValueType)up leftValue:(ValueType)left downValue:(ValueType)down rightValue:(ValueType)right center:(CGVector)center anchor:(CGPoint)anchor size:(CGSize)size
 {
     if (self = [super initWithCenter:center anchor:anchor size:size]) {
-        _upKeycode = up;
-        _leftKeycode = left;
-        _downKeycode = down;
-        _rightKeycode = right;
+        _upValue = up;
+        _leftValue = left;
+        _downValue = down;
+        _rightValue = right;
     }
 
     return self;

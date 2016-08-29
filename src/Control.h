@@ -6,13 +6,11 @@
 #import <Foundation/Foundation.h>
 #import <CoreGraphics/CoreGraphics.h>
 
-#import "input.h"
-
 
 /*
- * A single button shown on the screen.
+ * Describes an abstract control.
  */
-@interface Control : NSObject
+@interface Control<ValueType> : NSObject
 
 /* Create a control. */
 - (instancetype)initWithCenter:(CGVector)center anchor:(CGPoint)anchor size:(CGSize)size;
@@ -29,36 +27,42 @@
 @end
 
 
-@interface Button : Control
+/*
+ * Describes a pressable button.
+ */
+@interface Button<ValueType> : Control<ValueType>
 
 /* Create a button. */
-- (instancetype)initWithName:(NSString *)name keycode:(enum input_keycode)keycode center:(CGVector)center anchor:(CGPoint)anchor size:(CGSize)size;
+- (instancetype)initWithName:(NSString *)name value:(ValueType)value center:(CGVector)center anchor:(CGPoint)anchor size:(CGSize)size;
 
 /* The user-facing button title. */
 @property(nonatomic, copy, readonly) NSString *name;
 
-/* The keycode when the button is pressed. */
-@property(nonatomic, assign, readonly) enum input_keycode keycode;
+/* The value when the button is pressed. */
+@property(nonatomic, assign, readonly) ValueType value;
 
 @end
 
 
-@interface Pad : Control
+/*
+ * Describes a directional pad.
+ */
+@interface Pad<ValueType> : Control<ValueType>
 
 /* Create a pad. */
-- (instancetype)initWithUpKeycode:(enum input_keycode)up leftKeycode:(enum input_keycode)left downKeycode:(enum input_keycode)down rightKeycode:(enum input_keycode)right center:(CGVector)center anchor:(CGPoint)anchor size:(CGSize)size;
+- (instancetype)initWithUpValue:(ValueType)up leftValue:(ValueType)left downValue:(ValueType)down rightValue:(ValueType)right center:(CGVector)center anchor:(CGPoint)anchor size:(CGSize)size;
 
-/* The keycode when up is pressed. */
-@property(nonatomic, assign, readonly) enum input_keycode upKeycode;
+/* The value when up is pressed. */
+@property(nonatomic, assign, readonly) ValueType upValue;
 
-/* The keycode when left is pressed. */
-@property(nonatomic, assign, readonly) enum input_keycode leftKeycode;
+/* The value when left is pressed. */
+@property(nonatomic, assign, readonly) ValueType leftValue;
 
-/* The keycode when down is pressed. */
-@property(nonatomic, assign, readonly) enum input_keycode downKeycode;
+/* The value when down is pressed. */
+@property(nonatomic, assign, readonly) ValueType downValue;
 
-/* The keycode when right is pressed. */
-@property(nonatomic, assign, readonly) enum input_keycode rightKeycode;
+/* The value when right is pressed. */
+@property(nonatomic, assign, readonly) ValueType rightValue;
 
 @end
 

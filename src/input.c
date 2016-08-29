@@ -47,7 +47,7 @@ static struct input_context global_context;
 void input_key_down(enum input_keycode keycode)
 {
     char key = (char)keycode;
-    syslog(LOG_INFO, "key down: %x %c", key, key);
+    syslog(LOG_WARNING, "key down: %x %c", key, key);
     global_context.record.keyboard_down[key] = 1;
     global_context.record.keyboard_pressed[key] = 1;
     global_context.record.keyboard_released[key] = 0;
@@ -57,7 +57,7 @@ void input_key_down(enum input_keycode keycode)
 void input_key_up(enum input_keycode keycode)
 {
     char key = (char)keycode;
-    syslog(LOG_INFO, "key up: %x %c", key, key);
+    syslog(LOG_WARNING, "key up: %x %c", key, key);
     global_context.record.keyboard_down[key] = 0;
     global_context.record.keyboard_pressed[key] = 0;
     global_context.record.keyboard_released[key] = 1;
@@ -132,7 +132,7 @@ static const char *playback_path = "__PLAYBACK_PATH__";
 static FILE *interposed_fopen(const char *path, const char *mode)
 {
     if (strcmp(path, playback_path) == 0) {
-        syslog(LOG_INFO, "opening playback path");
+        syslog(LOG_WARNING, "opening playback path");
         void *cookie = &global_context;
         input_init(cookie);
         return funopen(cookie, input_read, NULL, input_seek, input_close);
@@ -146,13 +146,11 @@ Interpose(interposed_fopen, fopen);
 static char *interposed_strdup(const char *str)
 {
     if (strncmp(str, "-game", 5) == 0) {
-        syslog(LOG_INFO, "found game command line: %s", str);
-
+        syslog(LOG_WARNING, "found game arg: %s", str);
         size_t size = strlen(str) + 1 + strlen(playback_flag) + 1 + strlen(playback_path) + 1;
         char *result = malloc(size);
         snprintf(result, size, "%s %s %s", str, playback_flag, playback_path);
-
-        syslog(LOG_INFO, "new game command line is: %s", result);
+        syslog(LOG_WARNING, "new game args is: %s", result);
         return result;
     } else {
         return strdup(str);

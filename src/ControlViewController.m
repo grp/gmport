@@ -4,15 +4,18 @@
  */
 
 #import "ControlViewController.h"
-#import "input.h"
+
+/* Erased generic parameter. */
+typedef id ValueType;
+
 
 @implementation ControlViewController {
-    NSSet<ButtonView<Button *> *> *_buttonViews;
-    NSSet<PadView<Pad *> *> *_padViews;
-    NSMapTable<UITouch *, NSSet<NSNumber *> *> *_down;
+    NSSet<ButtonView<Button<ValueType> *> *> *_buttonViews;
+    NSSet<PadView<Pad<ValueType> *> *> *_padViews;
+    NSMapTable<UITouch *, NSSet<ValueType> *> *_down;
 }
 
-- (instancetype)initWithButtons:(NSSet<Button *> *)buttons pads:(NSSet<Pad *> *)pads
+- (instancetype)initWithButtons:(NSSet<Button<ValueType> *> *)buttons pads:(NSSet<Pad<ValueType> *> *)pads
 {
     if (self = [super init]) {
         _buttons = [buttons copy];
@@ -31,9 +34,9 @@
     [super loadView];
     self.view.multipleTouchEnabled = YES;
 
-    NSMutableSet<PadView<Pad *> *> *padViews = [NSMutableSet set];
-    for (Pad *pad in _pads) {
-        PadView<Pad *> *padView = [[PadView alloc] init];
+    NSMutableSet<PadView<Pad<ValueType> *> *> *padViews = [NSMutableSet set];
+    for (Pad<ValueType> *pad in _pads) {
+        PadView<Pad<ValueType> *> *padView = [[PadView alloc] init];
         padView.value = pad;
 
         [self.view addSubview:padView];
@@ -41,9 +44,9 @@
     }
     _padViews = padViews;
 
-    NSMutableSet<ButtonView<Button *> *> *buttonViews = [NSMutableSet set];
-    for (Button *button in _buttons) {
-        ButtonView<Button *> *buttonView = [[ButtonView alloc] init];
+    NSMutableSet<ButtonView<Button<ValueType> *> *> *buttonViews = [NSMutableSet set];
+    for (Button<ValueType> *button in _buttons) {
+        ButtonView<Button<ValueType> *> *buttonView = [[ButtonView alloc] init];
         buttonView.title = button.name;
         buttonView.value = button;
 
@@ -67,53 +70,53 @@
 {
     [super viewWillLayoutSubviews];
 
-    for (ButtonView<Button *> *buttonView in _buttonViews) {
+    for (ButtonView<Button<ValueType> *> *buttonView in _buttonViews) {
         [self _layoutControlView:buttonView forControl:buttonView.value];
     }
 
-    for (PadView<Pad *> *padView in _padViews) {
+    for (PadView<Pad<ValueType> *> *padView in _padViews) {
         [self _layoutControlView:padView forControl:padView.value];
     }
 }
 
-- (NSSet<NSNumber *> *)keycodesForTouch:(UITouch *)touch withEvent:(UIEvent *)event
+- (NSSet<ValueType> *)valuesForTouch:(UITouch *)touch withEvent:(UIEvent *)event
 {
-    NSMutableSet<NSNumber *> *keycodes = [NSMutableSet set];
+    NSMutableSet<ValueType> *values = [NSMutableSet set];
 
     /* Pressed buttons. */
-    for (ButtonView<Button *> *buttonView in _buttonViews) {
+    for (ButtonView<Button<ValueType> *> *buttonView in _buttonViews) {
         CGPoint location = [touch locationInView:buttonView];
         if ([buttonView pointInside:location withEvent:event]) {
-            [keycodes addObject:@(buttonView.value.keycode)];
+            [values addObject:buttonView.value.value];
         }
     }
 
     /* Pressed directions, including diagonals. */
-    for (PadView<Pad *> *padView in _padViews) {
+    for (PadView<Pad<ValueType> *> *padView in _padViews) {
         CGPoint location = [touch locationInView:padView];
         if ([padView pointInsideUp:location withEvent:event]) {
-            [keycodes addObject:@(padView.value.upKeycode)];
+            [values addObject:padView.value.upValue];
         }
         if ([padView pointInsideLeft:location withEvent:event]) {
-            [keycodes addObject:@(padView.value.leftKeycode)];
+            [values addObject:padView.value.leftValue];
         }
         if ([padView pointInsideDown:location withEvent:event]) {
-            [keycodes addObject:@(padView.value.downKeycode)];
+            [values addObject:padView.value.downValue];
         }
         if ([padView pointInsideRight:location withEvent:event]) {
-            [keycodes addObject:@(padView.value.rightKeycode)];
+            [values addObject:padView.value.rightValue];
         }
     }
 
-    return keycodes;
+    return values;
 }
 
 - (void)handleTouches:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event mutations:(void (^)(UITouch *, UIEvent *))mutations
 {
-    /* All keycodes down before mutation. */
-    NSMutableSet<NSNumber *> *before = [NSMutableSet set];
+    /* All values down before mutation. */
+    NSMutableSet<ValueType> *before = [NSMutableSet set];
     for (UITouch *touch in _down) {
-        NSSet<NSNumber *> *down = [_down objectForKey:touch];
+        NSSet<ValueType> *down = [_down objectForKey:touch];
         [before unionSet:down];
     }
 
@@ -122,43 +125,47 @@
         mutations(touch, event);
     }
 
-    /* All keycodes down after mutation. */
-    NSMutableSet<NSNumber *> *after = [NSMutableSet set];
+    /* All values down after mutation. */
+    NSMutableSet<ValueType> *after = [NSMutableSet set];
     for (UITouch *touch in _down) {
-        NSSet<NSNumber *> *down = [_down objectForKey:touch];
+        NSSet<ValueType> *down = [_down objectForKey:touch];
         [after unionSet:down];
     }
 
-    /* Determine released keycodes. */
-    NSMutableSet<NSNumber *> *up = [before mutableCopy];
+    /* Determine released values. */
+    NSMutableSet<ValueType> *up = [before mutableCopy];
     [up minusSet:after];
-    for (NSNumber *keycode in up) {
-        input_key_up(keycode.intValue);
+    if (_releaseHandler != nil) {
+        for (ValueType value in up) {
+            _releaseHandler(value);
+        }
     }
 
-    /* Determine pressed keycodes. */
-    NSMutableSet<NSNumber *> *down = [after mutableCopy];
+    /* Determine pressed values. */
+    NSMutableSet<ValueType> *down = [after mutableCopy];
     [down minusSet:before];
-    for (NSNumber *keycode in down) {
-        input_key_down(keycode.intValue);
+    if (_pressHandler != nil) {
+        for (ValueType value in down) {
+            _pressHandler(value);
+        }
     }
 }
 
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
 {
     [self handleTouches:touches withEvent:event mutations:^(UITouch *touch, UIEvent *event) {
-        /* Add new touch with appropriate keycodes. */
-        NSSet<NSNumber *> *keycodes = [self keycodesForTouch:touch withEvent:event];
-        [_down setObject:keycodes forKey:touch];
+        /* Add new touch with appropriate values. */
+        NSSet<ValueType> *values = [self valuesForTouch:touch withEvent:event];
+        [_down setObject:values forKey:touch];
     }];
 }
 
 - (void)touchesMoved:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
 {
     [self handleTouches:touches withEvent:event mutations:^(UITouch *touch, UIEvent *event) {
-        /* Update each changed touch for new keycodes. */
-        NSSet<NSNumber *> *keycodes = [self keycodesForTouch:touch withEvent:event];
-        [_down setObject:keycodes forKey:touch];
+        /* Update each changed touch for new values. */
+        NSSet<ValueType> *values = [self valuesForTouch:touch withEvent:event];
+        [_down setObject:values forKey:touch];
     }];
 }
 
