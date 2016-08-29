@@ -177,7 +177,7 @@ static void Up(NSSet<NSNumber *> *buttons)
 
 - (UIInterfaceOrientationMask)interfaceOrientations
 {
-    return UIInterfaceOrientationMaskAll;
+    return UIInterfaceOrientationMaskLandscape;
 }
 
 @end
