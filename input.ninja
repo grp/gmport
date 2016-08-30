@@ -1,0 +1,23 @@
+#
+# Copyright (c) 2016, Grant Paul
+# All rights reserved.
+#
+
+# Path to Ninja configuration. Modify this for the game.
+include game/Example/game.ninja
+
+# Path to the decrypted Game Maker game.
+source = 
+
+# Path to the game resources to copy.
+content = 
+
+# The code signing identity (often `iPhone Developer`) to sign the app wtih.
+identity = iPhone Developer
+
+# The appropriate App ID prefix for your provisioning profile.
+appid = 
+
+# Whether debugging is allowed. Must be `NO` for distribution provisioning profiles.
+debug = YES
+

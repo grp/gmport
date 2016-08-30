@@ -1,0 +1,76 @@
+/*
+ * Copyright (c) 2016, Grant Paul
+ * All rights reserved.
+ */
+
+{
+    Buttons = (
+        /* Action buttons. */
+        {
+            Center = "{45,-20}";
+            Anchor = "{0.85,0.8}";
+            Size = "{70,70}";
+
+            Name = "Z";
+            KeyIdentifier = "z";
+        },
+        {
+            Center = "{-45,20}";
+            Anchor = "{0.85,0.8}";
+            Size = "{70,70}";
+
+            Name = "X";
+            KeyIdentifier = "x";
+        },
+
+        /* Trigger buttons. */
+        {
+            Center = "{60,23}";
+            Anchor = "{0.0,0.0}";
+            Size = "{110,40}";
+
+            Name = "SHIFT";
+            KeyIdentifier = "shift";
+        },
+        {
+            Center = "{-60,23}";
+            Anchor = "{1.0,0.0}";
+            Size = "{110,40}";
+
+            Name = "A";
+            KeyIdentifier = "a";
+        },
+
+        /* Control buttons. */
+        {
+            Center = "{-45,0}";
+            Anchor = "{0.5,0.92}";
+            Size = "{75,25}";
+
+            Name = "ENTER";
+            KeyIdentifier = "enter";
+        },
+        {
+            Center = "{45,0}";
+            Anchor = "{0.5,0.92}";
+            Size = "{75,25}";
+
+            Name = "S";
+            KeyIdentifier = "s";
+        },
+    );
+
+    Pads = (
+        /* Standard directional pad. */
+        {
+            Center = "{0,0}";
+            Anchor = "{0.15,0.75}";
+            Size = "{180,180}";
+
+            UpKeyIdentifier = "up";
+            LeftKeyIdentifier = "left";
+            DownKeyIdentifier = "down";
+            RightKeyIdentifier = "right";
+        },
+    );
+}

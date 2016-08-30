@@ -1,0 +1,12 @@
+#
+# Copyright (c) 2016, Grant Paul
+# All rights reserved.
+#
+
+name = AM2R
+identifier = com.blogspot.metroid2remake.am2r
+version = 1.1
+
+icon = game/${name}/AppIcon.png
+controls = game/${name}/InputControls.plist
+

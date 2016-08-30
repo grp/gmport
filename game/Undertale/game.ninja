@@ -1,0 +1,12 @@
+#
+# Copyright (c) 2016, Grant Paul
+# All rights reserved.
+#
+
+name = Undertale
+identifier = com.undertale.Undertale
+version = 1.001
+
+icon = game/${name}/AppIcon.png
+controls = game/${name}/InputControls.plist
+
