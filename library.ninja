@@ -8,20 +8,20 @@ arch = arm64
 deployment_target = 7.0
 
 src = src
-build ${builddir}/Controls.o: cc ${src}/Controls.m
 build ${builddir}/Control.o: cc ${src}/Control.m
 build ${builddir}/ControlView.o: cc ${src}/ControlView.m
 build ${builddir}/ControlViewController.o: cc ${src}/ControlViewController.m
 build ${builddir}/input.o: cc ${src}/input.c
 build ${builddir}/InputKeys.o: cc ${src}/InputKeys.m
+build ${builddir}/InputControls.o: cc ${src}/InputControls.m
 
 build ${library}: link $
-    ${builddir}/Controls.o $
     ${builddir}/Control.o $
     ${builddir}/ControlView.o $
     ${builddir}/ControlViewController.o $
     ${builddir}/input.o $
-    ${builddir}/InputKeys.o
+    ${builddir}/InputKeys.o $
+    ${builddir}/InputControls.o
     type = -dynamiclib
     libs = $
         -framework Foundation $

@@ -36,9 +36,10 @@ Game Maker games are inherently portable, as the Game Maker engine runs on many 
      - `name`: The human-readable name of the app.
      - `identifier`: The reverse-DNS bundle identifier for the app.
      - `version`: The human and machine-readable app version.
+     - `icon`: Path to a PNG image for a replacement icon.
+     - `controls`: Path to a property list describing the control layout; see `InputControls-Example.plist`.
      - `source`: Path to the decrypted Game Maker game.
      - `content`: Path to the game resources to copy in.
-     - `icon`: Path to a PNG image for a replacement icon.
      - `identity`: The code signing identity (often `iPhone Developer`) to sign the app wtih.
      - `appid`:  The appropriate App ID prefix for your provisioning profile.
      - `debug`: Whether debugging is allowed. Must be `NO` for distribution provisioning profiles.

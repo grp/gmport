@@ -5,6 +5,9 @@
 
 build ${bundle}: copy ${source}
 
+control = ${bundle}/InputControls.plist
+build ${control}: copy ${controls}
+
 contents = ${bundle}/games
 data = ${contents}/game.ios
 
@@ -28,4 +31,4 @@ build ${contents}: sh | ${content} ${bundle}
         )
     desc = Copy contents
 
-build bundle: phony ${bundle} ${contents}
+build bundle: phony ${bundle} ${control} ${contents}
