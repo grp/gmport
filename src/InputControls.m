@@ -28,8 +28,9 @@ static Button<InputKey *> *LoadButton(InputKeys *inputKeys, NSDictionary<NSStrin
     CGVector center = CGVectorFromString(dictionary[@"Center"]);
     CGPoint anchor = CGPointFromString(dictionary[@"Anchor"]);
     CGSize size = CGSizeFromString(dictionary[@"Size"]);
+    UIEdgeInsets slop = UIEdgeInsetsFromString(dictionary[@"Slop"]);
 
-    return [[Button alloc] initWithName:name value:inputKey center:center anchor:anchor size:size];
+    return [[Button alloc] initWithName:name value:inputKey center:center anchor:anchor size:size slop:slop];
 }
 
 static Pad<InputKey *> *LoadPad(InputKeys *inputKeys, NSDictionary<NSString *, id> *dictionary)
@@ -45,8 +46,9 @@ static Pad<InputKey *> *LoadPad(InputKeys *inputKeys, NSDictionary<NSString *, i
     CGVector center = CGVectorFromString(dictionary[@"Center"]);
     CGPoint anchor = CGPointFromString(dictionary[@"Anchor"]);
     CGSize size = CGSizeFromString(dictionary[@"Size"]);
+    UIEdgeInsets slop = UIEdgeInsetsFromString(dictionary[@"Slop"]);
 
-    return [[Pad alloc] initWithUpValue:upInputKey leftValue:leftInputKey downValue:downInputKey rightValue:rightInputKey center:center anchor:anchor size:size];
+    return [[Pad alloc] initWithUpValue:upInputKey leftValue:leftInputKey downValue:downInputKey rightValue:rightInputKey center:center anchor:anchor size:size slop:slop];
 }
 
 

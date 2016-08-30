@@ -28,6 +28,13 @@
     return [UIColor colorWithWhite:0.8 alpha:0.4];
 }
 
+- (BOOL)pointInside:(CGPoint)point withEvent:(UIEvent *)event
+{
+    UIEdgeInsets inverted = UIEdgeInsetsMake(-_hitTestSlop.top, -_hitTestSlop.left, -_hitTestSlop.bottom, -_hitTestSlop.right);
+    CGRect slopBounds = UIEdgeInsetsInsetRect(self.bounds, inverted);
+    return CGRectContainsPoint(slopBounds, point);
+}
+
 @end
 
 

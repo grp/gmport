@@ -5,6 +5,7 @@
 
 #import <Foundation/Foundation.h>
 #import <CoreGraphics/CoreGraphics.h>
+#import <UIKit/UIKit.h>
 
 
 /*
@@ -13,7 +14,7 @@
 @interface Control<ValueType> : NSObject
 
 /* Create a control. */
-- (instancetype)initWithCenter:(CGVector)center anchor:(CGPoint)anchor size:(CGSize)size;
+- (instancetype)initWithCenter:(CGVector)center anchor:(CGPoint)anchor size:(CGSize)size slop:(UIEdgeInsets)slop;
 
 /* The offset from the anchor to the center, in points. */
 @property(nonatomic, assign, readonly) CGVector center;
@@ -24,6 +25,9 @@
 /* The size of the control, in points. */
 @property(nonatomic, assign, readonly) CGSize size;
 
+/* The touch slop applied to the view. */
+@property(nonatomic, assign, readonly) UIEdgeInsets slop;
+
 @end
 
 
@@ -33,7 +37,7 @@
 @interface Button<ValueType> : Control<ValueType>
 
 /* Create a button. */
-- (instancetype)initWithName:(NSString *)name value:(ValueType)value center:(CGVector)center anchor:(CGPoint)anchor size:(CGSize)size;
+- (instancetype)initWithName:(NSString *)name value:(ValueType)value center:(CGVector)center anchor:(CGPoint)anchor size:(CGSize)size slop:(UIEdgeInsets)slop;
 
 /* The user-facing button title. */
 @property(nonatomic, copy, readonly) NSString *name;
@@ -50,7 +54,7 @@
 @interface Pad<ValueType> : Control<ValueType>
 
 /* Create a pad. */
-- (instancetype)initWithUpValue:(ValueType)up leftValue:(ValueType)left downValue:(ValueType)down rightValue:(ValueType)right center:(CGVector)center anchor:(CGPoint)anchor size:(CGSize)size;
+- (instancetype)initWithUpValue:(ValueType)up leftValue:(ValueType)left downValue:(ValueType)down rightValue:(ValueType)right center:(CGVector)center anchor:(CGPoint)anchor size:(CGSize)size slop:(UIEdgeInsets)slop;
 
 /* The value when up is pressed. */
 @property(nonatomic, assign, readonly) ValueType upValue;

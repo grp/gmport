@@ -11,12 +11,13 @@ typedef id ValueType;
 
 @implementation Control
 
-- (instancetype)initWithCenter:(CGVector)center anchor:(CGPoint)anchor size:(CGSize)size
+- (instancetype)initWithCenter:(CGVector)center anchor:(CGPoint)anchor size:(CGSize)size slop:(UIEdgeInsets)slop
 {
     if (self = [super init]) {
         _center = center;
         _anchor = anchor;
         _size = size;
+        _slop = slop;
     }
 
     return self;
@@ -27,9 +28,9 @@ typedef id ValueType;
 
 @implementation Button
 
-- (instancetype)initWithName:(NSString *)name value:(ValueType)value center:(CGVector)center anchor:(CGPoint)anchor size:(CGSize)size
+- (instancetype)initWithName:(NSString *)name value:(ValueType)value center:(CGVector)center anchor:(CGPoint)anchor size:(CGSize)size slop:(UIEdgeInsets)slop
 {
-    if (self = [super initWithCenter:center anchor:anchor size:size]) {
+    if (self = [super initWithCenter:center anchor:anchor size:size slop:slop]) {
         _name = [name copy];
         _value = value;
     }
@@ -42,9 +43,9 @@ typedef id ValueType;
 
 @implementation Pad
 
-- (instancetype)initWithUpValue:(ValueType)up leftValue:(ValueType)left downValue:(ValueType)down rightValue:(ValueType)right center:(CGVector)center anchor:(CGPoint)anchor size:(CGSize)size
+- (instancetype)initWithUpValue:(ValueType)up leftValue:(ValueType)left downValue:(ValueType)down rightValue:(ValueType)right center:(CGVector)center anchor:(CGPoint)anchor size:(CGSize)size slop:(UIEdgeInsets)slop
 {
-    if (self = [super initWithCenter:center anchor:anchor size:size]) {
+    if (self = [super initWithCenter:center anchor:anchor size:size slop:slop]) {
         _upValue = up;
         _leftValue = left;
         _downValue = down;

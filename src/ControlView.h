@@ -15,6 +15,9 @@
 /* An opaque value held by the view. */
 @property(nonatomic, strong) ValueType value;
 
+/* Outsets around the view to accept touches. */
+@property(nonatomic, assign) UIEdgeInsets hitTestSlop;
+
 @end
 
 

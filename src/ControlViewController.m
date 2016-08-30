@@ -56,7 +56,7 @@ typedef id ValueType;
     _buttonViews = buttonViews;
 }
 
-- (void)_layoutControlView:(UIView *)controlView forControl:(Control *)control
+- (void)_layoutControlView:(ControlView *)controlView forControl:(Control *)control
 {
     CGPoint anchor = CGPointMake(control.anchor.x * self.view.bounds.size.width, control.anchor.y * self.view.bounds.size.height);
     CGPoint center = CGPointMake(anchor.x + control.center.dx, anchor.y + control.center.dy);
@@ -64,6 +64,7 @@ typedef id ValueType;
 
     controlView.bounds = bounds;
     controlView.center = center;
+    controlView.hitTestSlop = control.slop;
 }
 
 - (void)viewWillLayoutSubviews
