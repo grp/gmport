@@ -8,6 +8,9 @@ include rules.ninja
 # Input options.
 include input.ninja
 
+# Game options.
+include ${game}
+
 # Build directory.
 builddir = build
 build clean: rm ${builddir}

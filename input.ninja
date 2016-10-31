@@ -3,8 +3,8 @@
 # All rights reserved.
 #
 
-# Path to Ninja configuration. Modify this for the game.
-include game/Example/game.ninja
+# Path to game Ninja configuration.
+game = game/Example/game.ninja
 
 # Path to the decrypted Game Maker game.
 source = 
