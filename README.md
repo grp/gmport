@@ -9,7 +9,7 @@ Game Maker games are inherently portable, as the Game Maker engine runs on many 
 ## Supported Games
 
  - [AM2R](http://metroid2remake.blogspot.com) (Another Metroid II Remake)
- - [Undertale](http://undertale.com)
+ - [Undertale](http://undertale.com) *in progress; hangs after battles*
 
 Configuration for specific games is under `game`. Other games are likely to work; send pull requests with the configuration.
 
